@@ -39,10 +39,14 @@ class MoveManager {
 }
 
 class BattleManager {
+        // 맞은 횟수 = 맞을 확률 * 공격 횟수 
     int hitChance(Unit attacker, Unit defender, int distance) {
-        int value = 0;
-        double hitRate = Math.pow(Math.E, (-1)*distance/attacker.accuracy);
-        for (int i = 0; i < attacker.currentHp; i++) {
+            // 맞은 횟수 value
+        int value = 0;    
+            // 맞을 확률 hitRate = e^(-d/a) : 자연상수 e, 공격자-방어자 간 거리 d, 공격자 명중률 a
+        double hitRate = Math.pow(Math.E, (-1)*distance/attacker.accuracy); 
+            // 공격 횟수 = 공격자의 현재원 / 공격 성공 = 난수 < 맞을 확률
+        for (int i = 0; i < attacker.currentHp; i++) {    
             if (Math.random() < hitRate) {
                 value++;
             }
@@ -50,9 +54,38 @@ class BattleManager {
         
         return value;
     }
+    // 유효타 = 방어 확률 * 맞은 횟수
     int actualDamage(Unit attacker, Unit defender, int distance) {
-        return Math.pow(Math.E, (-1)*(0.008)*(distance));
+            // 맞은 횟수 hitTimes
+        int hitTimes = hitChance(attacker, defender, distance);
+            // 실제 피해량 decadedDamage = 기본 피해량 * e^(-n*d) : 자연상수 e, 감쇠변수 n, 공격자-방어자 간 거리 d
+        double decadedDamage = Math.pow(Math.E, (-1)*(0.008)*(distance));
+            // 방어 확률 = 
+        
+        return ;
     }
+
+
+    int damageCalculator(Unit attacker, Unit defender, int distance) {
+            // 피해량 damage = 유효타를 날린 횟수
+        int damage = 0,
+        attack = distance == 0 ? attacker.meleeAttack : attacker.rangedAttack;
+            // 실제 피해량 = 기본 피해량 * e^(-n*d) : 자연상수 e, 감쇠변수 n, 공격자-방어자 간 거리 d
+        boolean isPenetrated = attack * Math.pow(Math.E, (-1)*(0.008)*(distance)) > defender.armour;
+        // 유효타 = 공격 성공 * 방어 실패
+            // 명중률 hitRate = e^(-d/a) : 자연상수 e, 공격자-방어자 간 거리 d, 공격자 정확도 a
+        double hitRate = Math.pow(Math.E, (-1)*distance/attacker.accuracy); 
+            // 공격 횟수 = 공격자의 현재원 / 공격 성공 = 난수 < 맞을 확률
+        for (int i = 0; i < attacker.currentHp; i++) {    
+            if (Math.random() < hitRate) {
+                damage++;
+            }
+        }
+        damage = isPenetrated ? (int)((1 - 0.002 * defender.armour) * damage) : (int)(0.002 * (100 - defender.armour) * damage);
+        
+        return damage;
+    }
+    
     void combat(Unit attacker, Unit defender, int distance) {
         int damage = distance == 0 ? attacker.meleeAttack : attacker.rangedAttack;
         damage *= Math.pow(Math.E, (-1)*(0.008)*(distance));
